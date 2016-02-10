@@ -1,15 +1,15 @@
 'use strict';
 
 function pullRequestTemplate(pr) {
-  const mergeState = pr.closed_at? icons.merge.conflict :
-                     pr.merged_at? icons.merge.merged :
-                     icons.merge.clean;
+  const mergeState = pr.merged && pr.closed_at? icons.merge.merged :
+                     !pr.merged && pr.closed_at? icons.merge.conflict :
+                     pr.mergeable? icons.merge.clean : icons.merge.conflict;
   const mergedBy = pr.merged? `
     <div class="tsi-pull-request-merged-by">
       Merged by <b>${pr.merged_by.login}</b> on ${new Date(pr.merged_at).toLocaleString()}
     </div>
   ` : '';
-  const closedAt = pr.closed_at? `
+  const closedBy = pr.closed_at && !pr.merged? `
     <div class="tsi-pull-request-closed-at">
       Closed on ${new Date(pr.closed_at).toLocaleString()}
     </div>
@@ -50,7 +50,7 @@ function pullRequestTemplate(pr) {
             Opened by <b>${pr.user.login}</b> on ${new Date(pr.created_at).toLocaleString()}
           </div>
           ${mergedBy}
-          ${closedAt}
+          ${closedBy}
           ${bodyText}
         </div>
       </div>

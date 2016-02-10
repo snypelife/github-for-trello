@@ -1,10 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Trello-Github integration",
-  "version": "0.1",
-  // "icons": {
-  //   "128": "images/logo.png"
-  // },
+  "version": "0.1.2",
   "content_scripts": [
     {
       "matches": [
