@@ -1,7 +1,7 @@
 # chrome-extension-trello-github
 
 ##Steps to install
-1. Download the [crx extension file](chrome.crx?raw=true) and simply drop it onto a chrome window to install.
+1. [Add the extension](https://chrome.google.com/webstore/detail/iohiflmafknogmebbfaodjfeinkokkgn)
 2. Either go to the extension options page or to trello.com (you'll be prompted) and input your Github username and access code.
 3. If you don't have a Github user account, get one.
 4. If you don't have a Github personal access token, there is a link in the extensions options to create one.

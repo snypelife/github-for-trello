@@ -7,6 +7,7 @@
     "test": "test"
   },
   "scripts": {
+    "zip": "zip -r github-trello.zip chrome/"
   },
   "repository": {
     "type": "git",
