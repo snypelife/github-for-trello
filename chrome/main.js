@@ -9,6 +9,7 @@ const pullRequestProps = [
   'changed_files',
   'comments',
   'commits',
+  'closed_at',
   'created_at',
   'deletions',
   'diff_url',

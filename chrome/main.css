@@ -78,7 +78,8 @@
 }
 
 .tsi-pull-request-opened-by,
-.tsi-pull-request-merged-by {
+.tsi-pull-request-merged-by,
+.tsi-pull-request-closed-at {
   font-size: .9rem;
   line-height: 1.2rem;
 }
