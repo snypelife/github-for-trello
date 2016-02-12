@@ -13,10 +13,7 @@
         "main.css"
       ],
       "js": [
-        "vendor/jquery-2.2.0.min.js",
-        "vendor/lodash.4.2.1.min.js",
-        "js/helpers.js",
-        "js/templates.js",
+        "js/polyfills.js",
         "main.js"
       ]
     }
