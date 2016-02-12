@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "zip": "zip -r github-trello.zip chrome/"
+    "zip": "rimraf github-trello.zip && zip -r github-trello.zip chrome/"
   },
   "repository": {
     "type": "git",
@@ -30,6 +30,7 @@
     "jsdom": "^8.0.2",
     "mocha": "^2.4.5",
     "nock": "^7.0.2",
+    "rimraf": "^2.5.1",
     "sinon": "^1.17.3"
   }
 }
