@@ -435,17 +435,21 @@ class Main {
   handleDOMMutation(mutations, observer) {
     const github = this.github;
     const sel = this.sel;
-    let cardWindowIsOpen = this.cardWindowIsOpen;
 
     if (!sel || !github) { return }
 
-    if (cardWindowIsOpen) {
+    this.cardWindowIsOpen = Util.is(this.cardWindow, 'visible?');
 
+    if (this.cardWindowIsOpen) {
       const ghPrLinks = Array.toArray(
         sel.getAll(DOMClassName.githubLinkClassName, DOMClassName.cardDescription)
       ).filter((el) => {
         return el.hostname === 'github.com' && /pull/.test(el.pathname);
       });
+
+      if (ghPrLinks.length === 0) {
+        return;
+      }
 
       // TODO: Attach PR to card from button in right sidebar
       // if (sel.get(DOMClassName.pluginButtonOutlet)) {
@@ -454,11 +458,6 @@ class Main {
       //     ${pullRequestButton}
       //   `;
       // }
-
-      if (ghPrLinks.length === 0) {
-        this.cardWindowIsOpen = Util.is(this.cardWindow, 'visible?');
-        return;
-      }
 
       Promise.all(
         ghPrLinks.map((link) => {
@@ -491,8 +490,6 @@ class Main {
         throw err;
       });
     }
-
-    this.cardWindowIsOpen = Util.is(this.cardWindow, 'visible?');
   }
 }
 
