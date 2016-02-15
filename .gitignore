@@ -2,3 +2,4 @@ node_modules/*
 *.pem
 *.zip
 .DS_Store
+.publishrc
