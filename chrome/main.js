@@ -52,19 +52,23 @@ class Ajax {
     this.prefilters.push(cb);
   }
 
+  serializeParams(params) {
+    let queryParams = '';
+    params = params || {};
+    Object.keys(params).forEach((key, i) => {
+      if (i === 0) { queryParams += '?'; }
+      else { queryParams += '&'; }
+      queryParams += encodeURI(`${key}=${params[key]}`);
+    });
+    return queryParams;
+  }
+
   get(url, params) {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-      let queryParams = '';
-      params = params || {};
+      params = this.serializeParams(params);
 
-      Object.keys(params).forEach((key, i) => {
-        if (i === 0) { queryParams += '?'; }
-        else { queryParams += '&'; }
-        queryParams += encodeURI(`${key}=${params[key]}`);
-      });
-
-      xhr.url = encodeURI(url + queryParams);
+      xhr.url = encodeURI(url + params);
       xhr.open('GET', xhr.url);
       xhr.onload = () => {
         if (xhr.status !== 200) {
