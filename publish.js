@@ -28,12 +28,10 @@
 // Additionally the script needs the app ID of the Chrome extension, which it gets
 // from the APP_ID env var
 
-const log = new require('console').Console();
+const log = require('console');
 const fs = require('fs');
 const join = require('path').join;
-const qs = require('querystring');
 const request = require('request');
-const exec = require('child_process').exec;
 const conf = require('rc')('publish', {});
 const util = require('util');
 
@@ -78,14 +76,16 @@ function uploadPackage(accessToken) {
   return new Promise((resolve, reject) => {
     log.info('Uploading updated package...');
     fs.createReadStream(join(__dirname, 'github-trello.zip')).pipe(
-      request.put(packageUploadEndpoint, { auth: { bearer: accessToken } }, (err, response, body) => {
+      request.put(packageUploadEndpoint,
+        { auth: { bearer: accessToken } },
+        (err, response, body) => {
         if (err || response.statusCode !== 200) {
           return reject(
             new Error(`Package upload failed: ${response.statusCode} ${body}`)
           );
         }
 
-        resolve(body);
+        resolve(accessToken);
       })
     );
   });
@@ -97,9 +97,9 @@ function publishPackage(accessToken) {
 
   return new Promise((resolve, reject) => {
     log.info('Publishing updated package...');
-    request.post(packagePublishEndpoint,{
-      auth: { bearer: accessToken }
-    }, function(err, response, body) {
+    request.post(packagePublishEndpoint,
+      { auth: { bearer: accessToken } },
+      function(err, response, body) {
       if (err || response.statusCode !== 200) {
         return reject(
           new Error(`Publishing updated package failed: ${response.statusCode} ${body}`)
@@ -114,9 +114,9 @@ function main() {
   // const travisBranch = requireEnvVar('TRAVIS_BRANCH');
   // const travisPullRequest = requireEnvVar('TRAVIS_PULL_REQUEST');
 
-  const appId = requireEnvVar('APP_ID');
-  const packageUploadEndpoint = 'https://www.googleapis.com/upload/chromewebstore/v1.1/items/' + appId;
-  const packagePublishEndpoint = 'https://www.googleapis.com/chromewebstore/v1.1/items/' + appId + '/publish';
+  // const appId = requireEnvVar('APP_ID');
+  // const packageUploadEndpoint = 'https://www.googleapis.com/upload/chromewebstore/v1.1/items/' + appId;
+  // const packagePublishEndpoint = 'https://www.googleapis.com/chromewebstore/v1.1/items/' + appId + '/publish';
   // const packagePath = args[0];
   // if (!packagePath) {
   //   throw new Error('Package path not specified');
@@ -128,7 +128,7 @@ function main() {
   const refreshToken = requireEnvVar('REFRESH_TOKEN');
 
   // if (travisBranch !== 'master' || travisPullRequest !== 'false') {
-  log.info('Skipping publication from pull request or non-master branch');
+  // log.info('Skipping publication from pull request or non-master branch');
   //   return;
   // }
 
@@ -143,12 +143,10 @@ function main() {
   getAccessToken(clientId, clientSecret, refreshToken)
   .then(uploadPackage)
   .then(publishPackage)
-    .then(null, onErr)
   .then(() => {
     log.info('Updated package has been queued for publishing');
   })
-  .catch(onErr)
-  // .catch(onErr);
+  .catch(onErr);
 }
 
 function onErr(err) {
