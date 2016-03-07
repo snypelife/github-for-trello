@@ -143,7 +143,7 @@ class Github extends Ajax {
     this.username = username;
     this.accessToken = accessToken;
     this.addPrefilter((xhr) => {
-      if (xhr.url.includes('https://api.github.com')) {
+      if (xhr.url.indexOf('https://api.github.com') === 0) {
         let token = btoa(`${this.username}:${this.accessToken}`);
         xhr.setRequestHeader('Authorization', `Basic ${token}`);
       }
@@ -168,6 +168,7 @@ class Github extends Ajax {
 class EventBus {
   constructor () {
     this.events = {};
+    this.$ = new SelectorEngine();
   }
 
   _generateGuid() {
@@ -189,32 +190,52 @@ class EventBus {
   }
 
   on(element, event, scope, cb) {
+    if (element.getAttribute('data-guid')) {
+      console.warn(`Element ${element.getAttribute('data-guid')} already has listener attached, ignoring..`);
+      return;
+    }
+
     const guid = this._generateGuid();
     const proxy = (evt) => {
       if (typeof scope === 'function') {
         cb = scope;
         return cb(evt);
       }
-      if (get(scope, evt.target.parentNode)) {
-        cb(evt);
+      if (this.$.get(scope, evt.target.parentNode)) {
+        return cb(evt);
       }
     };
     element.setAttribute('data-guid', guid);
     element.addEventListener(event, proxy, false);
-    this.events[guid] = proxy;
+    this.events[guid] = {
+      handler: proxy,
+      element
+    }
   }
 
-  off(element, event) {
-    const proxy = this.events[element.getAttibute('guid')];
-    element.removeEventListener(event, proxy, false);
-    delete this.events[element.getAttribute('data-guid')];
-    element.removeAttribute('data-guid');
+  off(element, eventName) {
+    if (element) {
+      const proxy = this.events[element.getAttribute('guid')];
+      element.removeEventListener(eventName, proxy, false);
+      delete this.events[element.getAttribute('data-guid')];
+      element.removeAttribute('data-guid');
+    } else {
+      Object.keys(this.events).forEach((key) => {
+        const element = this.events[key].element;
+        const proxy = this.events[key].handler;
+        element.removeEventListener(eventName, proxy, false);
+        delete this.events[key];
+      })
+    }
   }
 
   observe(element, options, cb) {
     if (typeof options === 'function') {
       cb = options;
-      options = { attributes: true, attributeOldValue: true };
+      options = {
+        attributes: true,
+        attributeOldValue: true
+      };
     }
 
     return new MutationObserver(cb).observe(element, options);
@@ -302,15 +323,13 @@ class PullRequestTemplate {
   }
 
   toString() {
-      return this.htmlString.trim();
+    return this.htmlString.trim();
   }
 }
 
 class PullRequestSectionTemplate {
   constructor(data) {
-    this.prList = data.map((prData) => {
-      return new PullRequestTemplate(prData);
-    });
+    this.prList = data.map((prData) => new PullRequestTemplate(prData));
     this.htmlString = `
       <div class="tsi-github-plugin">
         <div class="window-module-title">
@@ -323,7 +342,7 @@ class PullRequestSectionTemplate {
   }
 
   toString() {
-      return this.htmlString.trim();
+    return this.htmlString.trim();
   }
 }
 
@@ -342,7 +361,7 @@ class PullRequestSectionTemplate {
 //   </div>
 // `;
 
-class Util {
+class _ {
   static is(target, state) {
     switch (state) {
       case 'hidden':
@@ -383,13 +402,13 @@ class Main {
     this.github = null;
 
     this.cardWindow = sel.get(DOMClassName.cardWindow);
-    this.cardWindowIsOpen = Util.is(this.cardWindow, 'visible?');
+    this.cardWindowIsOpen = _.is(this.cardWindow, 'visible?');
 
     vault.getCredentials()
     .then(this.handleCredentialSuccess.bind(this))
     .catch(this.handleCredentialError.bind(this));
 
-    this.eventBus.observe(this.cardWindow, this.handleDOMMutation.bind(this));
+    eventBus.observe(this.cardWindow, this.handleDOMMutation.bind(this));
 
     // TODO: Event handling for sidebar button
     // sel.on(cardWindow, 'click', '.js-attach-pull-request', (evt) => {
@@ -422,77 +441,88 @@ class Main {
 
   handleCredentialError(reason) {
     if (reason === 'missing auth creds') {
-      const redirect = window.confirm('Hold up Cochise, you need a Github username and access token to use this extension. Go set that ish up in the options section.');
+      const redirect = window.confirm('Hold up, you need a Github username and access token to use this extension. Go set that ish up in the options section.');
 
       if (redirect) {
-         if (chrome.runtime.openOptionsPage) {
-            // New way to open options pages, if supported (Chrome 42+).
-            chrome.runtime.openOptionsPage();
-          } else {
-            // Reasonable fallback.
-            window.open(chrome.runtime.getURL('options.html'));
-          }
+        if (chrome.runtime.openOptionsPage) {
+          // New way to open options pages, if supported (Chrome 42+).
+          chrome.runtime.openOptionsPage();
+        } else {
+          // Reasonable fallback.
+          window.open(chrome.runtime.getURL('options.html'));
+        }
       }
     }
   }
 
-  handleDOMMutation(mutations, observer) {
+  buildGithubSection() {
     const github = this.github;
     const sel = this.sel;
 
-    if (!sel || !github) { return }
+    const ghPrLinks = Array.toArray(
+      sel.getAll(DOMClassName.githubLinkClassName, DOMClassName.cardDescription)
+    ).filter((el) => {
+      return el.hostname === 'github.com' && /pull/.test(el.pathname);
+    });
 
-    this.cardWindowIsOpen = Util.is(this.cardWindow, 'visible?');
+    if (ghPrLinks.length === 0) { return; }
+
+    // TODO: Attach PR to card from button in right sidebar
+    // if (sel.get(DOMClassName.pluginButtonOutlet)) {
+    //   sel.get(pluginButtonOutlet).innerHTML = `
+    //     <h3>Github</h3>
+    //     ${pullRequestButton}
+    //   `;
+    // }
+
+    Promise.all(
+      ghPrLinks.map((link) => {
+        return new Promise((resolve, reject) => {
+          const linkParts = link.pathname.split('/').filter(Boolean);
+          const owner = linkParts[0];
+          const repo = linkParts[1];
+          const pullNumber = linkParts[3];
+
+          github.getPullRequest(owner, repo, pullNumber)
+          .then((result) => {
+            const state = Object.extend({
+              repo: {
+                full_name: `${owner}/${repo}`
+              }
+            }, _.pick(result, github.enums.pullRequestProps));
+
+            link.classList.add('hide');
+
+            resolve(state);
+          })
+          .catch(reject);
+        });
+      })
+    )
+    .then((pullRequests) => {
+      sel.get(DOMClassName.pluginMainOutlet).innerHTML = new PullRequestSectionTemplate(pullRequests);
+    })
+    .catch((err) => {
+      throw err;
+    });
+  }
+
+  handleDOMMutation() {
+    const github = this.github;
+    const sel = this.sel;
+    const eventBus = this.eventBus;
+
+    if (!sel || !github) { return; }
+
+    this.cardWindowIsOpen = _.is(this.cardWindow, 'visible?');
 
     if (this.cardWindowIsOpen) {
-      const ghPrLinks = Array.toArray(
-        sel.getAll(DOMClassName.githubLinkClassName, DOMClassName.cardDescription)
-      ).filter((el) => {
-        return el.hostname === 'github.com' && /pull/.test(el.pathname);
+      eventBus.on(sel.get(DOMClassName.cardDescription), 'change', '.field', () => {
+        this.buildGithubSection();
       });
-
-      if (ghPrLinks.length === 0) {
-        return;
-      }
-
-      // TODO: Attach PR to card from button in right sidebar
-      // if (sel.get(DOMClassName.pluginButtonOutlet)) {
-      //   sel.get(pluginButtonOutlet).innerHTML = `
-      //     <h3>Github</h3>
-      //     ${pullRequestButton}
-      //   `;
-      // }
-
-      Promise.all(
-        ghPrLinks.map((link) => {
-          return new Promise((resolve, reject) => {
-            const linkParts = link.pathname.split('/').filter(Boolean);
-            const owner = linkParts[0];
-            const repo = linkParts[1];
-            const pullNumber = linkParts[3];
-
-            github.getPullRequest(owner, repo, pullNumber)
-            .then((result) => {
-              const state = Object.extend({
-                repo: {
-                  full_name: `${owner}/${repo}`
-                }
-              }, Util.pick(result, github.enums.pullRequestProps));
-
-              link.classList.add('hide');
-
-              resolve(state);
-            })
-            .catch(reject);
-          });
-        })
-      )
-      .then((pullRequests) => {
-        sel.get(DOMClassName.pluginMainOutlet).innerHTML = new PullRequestSectionTemplate(pullRequests);
-      })
-      .catch((err) => {
-        throw err;
-      });
+      this.buildGithubSection();
+    } else {
+      eventBus.off(sel.get(DOMClassName.cardDescription), 'change');
     }
   }
 }
