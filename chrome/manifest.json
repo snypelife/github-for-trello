@@ -14,7 +14,7 @@
       ],
       "js": [
         "js/polyfills.js",
-        "main.js"
+        "bundle.js"
       ]
     }
   ],
