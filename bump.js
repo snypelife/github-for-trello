@@ -18,6 +18,15 @@ const schema = {
   }
 };
 
+function writeJson(filename, data) {
+  return new Promise((resolve, reject) => {
+    fs.writeFile(filename, JSON.stringify(data, null, '  '), (err) => {
+      if (err) { return reject(err); }
+      resolve();
+    });
+  })
+}
+
 prompt.start();
 
 prompt.get(schema, (err, result) => {
@@ -33,27 +42,17 @@ prompt.get(schema, (err, result) => {
   } else {
     version[2]++;
   }
-  version = version.join('.');
-  packageJSON.version = version;
-  manifestJSON.version = version;
+
+  version = packageJSON.version = manifestJSON.version = version.join('.');
 
   Promise.all([
-    new Promise((resolve, reject) => {
-      fs.writeFile('./package.json', JSON.stringify(packageJSON, null, '  '), (err) => {
-        if (err) { return reject(err); }
-        resolve();
-      });
-    }),
-    new Promise((resolve, reject) => {
-      fs.writeFile('./chrome/manifest.json', JSON.stringify(manifestJSON, null, '  '), (err) => {
-        if (err) { return reject(err); }
-        resolve();
-      });
-    })
-  ]).then(() => {
+    writeJson('./package.json', packageJSON),
+    writeJson('./chrome/manifest.json', manifestJSON)
+  ])
+  .then(() => {
     console.log(`${result.bumpType} version bumped to ${version}.`);
-  }).catch((err) => {
-    throw err;
   })
-
+  .catch((err) => {
+    throw err;
+  });
 });
