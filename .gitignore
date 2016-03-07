@@ -3,3 +3,6 @@ node_modules/*
 *.zip
 .DS_Store
 .publishrc
+
+bundle.js
+bundle.js.map
