@@ -1,6 +1,6 @@
 {
   "name": "chrome-extension-trello-github",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "description": "",
   "main": "src/index.js",
   "directories": {
@@ -8,8 +8,9 @@
   },
   "scripts": {
     "build": "rollup --sourcemap -i chrome/main.js -o chrome/bundle.js",
+    "version": "./bump.js",
     "zip": "rimraf github-trello.zip && zip -r github-trello.zip chrome/",
-    "publish": "npm run build && ./bump.js && npm run zip && ./publish.js"
+    "publish": "npm run build && npm run zip && ./publish.js"
   },
   "repository": {
     "type": "git",
