@@ -1,21 +1,17 @@
 'use strict';
 
-class SelectorEngine {
-  constructor() {}
+function getAll(selector, scope) {
+  scope = scope || document;
 
-  getAll(selector, scope) {
-    scope = scope || document;
-
-    if (typeof scope === 'string') {
-      scope = document.querySelector(scope);
-    }
-
-    return scope.querySelectorAll(selector);
+  if (typeof scope === 'string') {
+    scope = document.querySelector(scope);
   }
 
-  get(selector, scope) {
-    return this.getAll(selector, scope)[0];
-  }
+  return scope.querySelectorAll(selector);
 }
 
-export default SelectorEngine
+function get(selector, scope) {
+  return getAll(selector, scope)[0];
+}
+
+export { getAll, get }

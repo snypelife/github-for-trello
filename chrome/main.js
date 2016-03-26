@@ -1,17 +1,17 @@
 'use strict';
 
-import _ from './js/utility.js'
+import { is, pick } from './js/utility.js'
 import Enums from './js/enums.js'
-import SelectorEngine from './js/selector-engine.js'
-import EventBus from './js/event-bus.js'
-import Vault from './js/vault.js'
-import Github from './js/github.js'
+import { get as getElement, getAll as getElements } from './js/selector-engine.js'
+import { on, off, observe } from './js/event-bus.js'
+import { getCredentials } from './js/vault.js'
+import github from './js/github.js'
 import { PullRequestSectionTemplate } from './js/templates.js'
 
-let github, sel, eventBus, vault, cardWindow, cardWindowIsOpen;
+let gh, cardWindow, cardWindowIsOpen;
 
 function handleCredentialSuccess(credentials) {
-  github = new Github(credentials.username, credentials.accessToken);
+  gh = github(credentials.username, credentials.accessToken);
 }
 
 function handleCredentialError(reason) {
@@ -33,16 +33,14 @@ function handleCredentialError(reason) {
 function buildGithubSection() {
 
   const ghPrLinks = Array.toArray(
-    sel.getAll(Enums.githubLinkClassName, Enums.cardDescription)
-  ).filter((el) => {
-    return el.hostname === 'github.com' && /pull/.test(el.pathname);
-  });
+    getElements(`${Enums.cardDescription} ${Enums.githubLinkClassName}`)
+  ).filter((el) => el.hostname === 'github.com' && /pull/.test(el.pathname));
 
   if (ghPrLinks.length === 0) { return; }
 
   // TODO: Attach PR to card from button in right sidebar
-  // if (sel.get(Enums.pluginButtonOutlet)) {
-  //   sel.get(pluginButtonOutlet).innerHTML = `
+  // if (getElement(Enums.pluginButtonOutlet)) {
+  //   getElement(pluginButtonOutlet).innerHTML = `
   //     <h3>Github</h3>
   //     ${pullRequestButton}
   //   `;
@@ -56,13 +54,13 @@ function buildGithubSection() {
         const repo = linkParts[1];
         const pullNumber = linkParts[3];
 
-        github.getPullRequest(owner, repo, pullNumber)
+        gh.getPullRequest(owner, repo, pullNumber)
         .then((result) => {
           const state = Object.extend({
             repo: {
               full_name: `${owner}/${repo}`
             }
-          }, _.pick(result, Enums.pullRequestProps));
+          }, pick(result, Enums.pullRequestProps));
 
           link.classList.add('hide');
 
@@ -73,46 +71,37 @@ function buildGithubSection() {
     })
   )
   .then((pullRequests) => {
-    sel.get(Enums.pluginMainOutlet).innerHTML = PullRequestSectionTemplate(pullRequests);
-  })
-  .catch((err) => {
+    getElement(Enums.pluginMainOutlet).innerHTML = PullRequestSectionTemplate(pullRequests);
+  }, (err) => {
     throw err;
   });
 }
 
 function handleDOMMutation() {
-  if (!sel || !github) { return; }
-
-  cardWindowIsOpen = _.is(cardWindow, 'visible?');
+  cardWindowIsOpen = is(cardWindow, 'visible?');
 
   if (cardWindowIsOpen) {
-    eventBus.on(sel.get(Enums.cardDescription), 'change', '.field', () => {
-      buildGithubSection();
-    });
+    on('change', getElement(Enums.cardDescription), '.field', buildGithubSection);
     buildGithubSection();
   } else {
-    eventBus.off(sel.get(Enums.cardDescription), 'change');
+    off('change', getElement(Enums.cardDescription));
   }
 }
 
 function main() {
-  sel = new SelectorEngine();
-  eventBus = new EventBus();
-  vault = new Vault();
+  cardWindow = getElement(Enums.cardWindow);
+  cardWindowIsOpen = is(cardWindow, 'visible?');
 
-  cardWindow = sel.get(Enums.cardWindow);
-  cardWindowIsOpen = _.is(cardWindow, 'visible?');
-
-  vault.getCredentials()
-  .then(handleCredentialSuccess)
-  .catch(handleCredentialError);
-
-  eventBus.observe(cardWindow, handleDOMMutation);
+  getCredentials()
+  .then(handleCredentialSuccess, handleCredentialError)
+  .then(() => {
+    observe(cardWindow, handleDOMMutation);
+    if (cardWindowIsOpen) { handleDOMMutation(); }
+  }, handleCredentialError);
 }
 
 try {
   main();
-}
-catch (ex) {
+} catch (ex) {
   console.error(ex);
 }
