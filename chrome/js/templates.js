@@ -30,6 +30,9 @@ export function PullRequestTemplate(pullRequest) {
       </div>
     ` : '';
     const bodyText = pullRequest.body? `<p>${pullRequest.body}</p>` : '';
+    const LGTM = mergeState === 'clean' ?
+      `<a class="button-link js-lgtm" href="#" data-pr-link="${pullRequest.html_url}"><span class="icon-sm icon-vote"></span>LGTM!</a>` :
+      '';
 
     const htmlString = `
       <div class="tsi-github-plugin-pull-request">
@@ -46,6 +49,14 @@ export function PullRequestTemplate(pullRequest) {
                   <a class="tsi-pull-request-title" href="${pullRequest.html_url}" target="_blank">
                     ${pullRequest.title}
                   </a>
+                  <div class="tsi-pull-request-slug">
+                    ${pullRequest.repo.full_name} #${pullRequest.number}
+                  </div>
+                  <div class="tsi-pull-request-opened-by">
+                    Opened by <b>${pullRequest.user.login}</b> on ${new Date(pullRequest.created_at).toLocaleString()}
+                  </div>
+                  ${mergedBy}
+                  ${closedBy}
                 </div>
                 <div class="col-md-3">
                   <div class="tsi-pull-request-changes">
@@ -57,16 +68,9 @@ export function PullRequestTemplate(pullRequest) {
                       -${pullRequest.deletions}
                     </span>
                   </div>
+                  ${LGTM}
                 </div>
               </div>
-              <div class="tsi-pull-request-slug">
-                ${pullRequest.repo.full_name} #${pullRequest.number}
-              </div>
-              <div class="tsi-pull-request-opened-by">
-                Opened by <b>${pullRequest.user.login}</b> on ${new Date(pullRequest.created_at).toLocaleString()}
-              </div>
-              ${mergedBy}
-              ${closedBy}
               ${bodyText}
             </div>
           </div>
