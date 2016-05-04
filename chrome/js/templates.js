@@ -30,6 +30,9 @@ export function PullRequestTemplate(pullRequest) {
       </div>
     ` : '';
     const bodyText = pullRequest.body? `<p>${pullRequest.body}</p>` : '';
+    const LGTM = mergeState === 'clean' ?
+      `<a class="button-link js-lgtm" href="#"><span class="icon-sm icon-vote"></span>LGTM!</a>` :
+      '';
 
     const htmlString = `
       <div class="tsi-github-plugin-pull-request">
@@ -67,6 +70,7 @@ export function PullRequestTemplate(pullRequest) {
               </div>
               ${mergedBy}
               ${closedBy}
+              ${LGTM}
               ${bodyText}
             </div>
           </div>
