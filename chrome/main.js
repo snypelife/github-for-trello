@@ -32,11 +32,9 @@ function handleCredentialError(reason) {
 
 function extractGithubInfoFromLink(link) {
   const regex = /(?:http(?:s)?:\/\/)?(?:github\.com)?\/(.+)\/(.+)\/(.+)\/(.+)/;
-  console.log(link);
+
   if (regex.test(link)) {
     const linkParts = link.match(regex);
-    console.log(linkParts);
-
     return {
       owner: linkParts[1],
       repo: linkParts[2],
