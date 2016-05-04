@@ -82,6 +82,10 @@ function handleDOMMutation() {
 
   if (cardWindowIsOpen) {
     on('change', getElement(Enums.cardDescription), '.field', buildGithubSection);
+    on('click', getElement(Enums.pluginMainOutlet), '.js-lgtm', (evt) => {
+      evt.preventDefault();
+      alert('LGTM!');
+    });
     buildGithubSection();
   } else {
     off('change', getElement(Enums.cardDescription));
