@@ -31,7 +31,7 @@ export function PullRequestTemplate(pullRequest) {
     ` : '';
     const bodyText = pullRequest.body? `<p>${pullRequest.body}</p>` : '';
     const LGTM = mergeState === 'clean' ?
-      `<a class="button-link js-lgtm" href="#"><span class="icon-sm icon-vote"></span>LGTM!</a>` :
+      `<a class="button-link js-lgtm" href="#" data-pr-link="${pullRequest.html_url}"><span class="icon-sm icon-vote"></span>LGTM!</a>` :
       '';
 
     const htmlString = `

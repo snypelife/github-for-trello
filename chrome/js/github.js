@@ -1,6 +1,6 @@
 'use strict';
 
-import { getJSON } from './ajax.js'
+import { getJSON, postJSON } from './ajax.js'
 import { startsWith } from './utility.js'
 
 const github = (username, accessToken) => {
@@ -16,7 +16,7 @@ const github = (username, accessToken) => {
       return new Promise((resolve, reject) => {
         getJSON(`https://api.github.com/repos/${owner}/${repo}/pulls`, {}, {
           before: prefilter
-        }).then(resolve, reject);
+        }).then(resolve).then(null, reject);
       })
     },
 
@@ -24,7 +24,17 @@ const github = (username, accessToken) => {
       return new Promise((resolve, reject) => {
         getJSON(`https://api.github.com/repos/${owner}/${repo}/pulls/${number}`, {}, {
           before: prefilter
-        }).then(resolve, reject);
+        }).then(resolve).then(null, reject);
+      });
+    },
+
+    postPullRequestComment(owner, repo, number, comment) {
+      return new Promise((resolve, reject) => {
+        postJSON(`https://api.github.com/repos/${owner}/${repo}/issues/${number}/comments`, {
+            body: comment
+          }, {
+          before: prefilter
+        }).then(resolve).then(null, reject);
       });
     }
   }

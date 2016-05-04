@@ -30,6 +30,24 @@ function handleCredentialError(reason) {
   }
 }
 
+function extractGithubInfoFromLink(link) {
+  const regex = /(?:http(?:s)?:\/\/)?(?:github\.com)?\/(.+)\/(.+)\/(.+)\/(.+)/;
+  console.log(link);
+  if (regex.test(link)) {
+    const linkParts = link.match(regex);
+    console.log(linkParts);
+
+    return {
+      owner: linkParts[1],
+      repo: linkParts[2],
+      type: linkParts[3],
+      number: linkParts[4]
+    };
+  } else {
+    throw new Error('something happened')
+  }
+}
+
 function buildGithubSection() {
 
   const ghPrLinks = Array.toArray(
@@ -49,16 +67,13 @@ function buildGithubSection() {
   Promise.all(
     ghPrLinks.map((link) => {
       return new Promise((resolve, reject) => {
-        const linkParts = link.pathname.split('/').filter(Boolean);
-        const owner = linkParts[0];
-        const repo = linkParts[1];
-        const pullNumber = linkParts[3];
+        const pr = extractGithubInfoFromLink(link.pathname);
 
-        gh.getPullRequest(owner, repo, pullNumber)
+        gh.getPullRequest(pr.owner, pr.repo, pr.number)
         .then((result) => {
           const state = Object.extend({
             repo: {
-              full_name: `${owner}/${repo}`
+              full_name: `${pr.owner}/${pr.repo}`
             }
           }, pick(result, Enums.pullRequestProps));
 
@@ -77,18 +92,29 @@ function buildGithubSection() {
   });
 }
 
+function handleLGTMClick(evt) {
+  evt.preventDefault();
+  const link = evt.target.getAttribute('data-pr-link');
+  const pr = extractGithubInfoFromLink(link);
+
+  gh.postPullRequestComment(pr.owner, pr.repo, pr.number, 'LGTM:+1:')
+  .then(() => {
+    console.log('SUCCESSFUL LGTM');
+  }, () => {
+    console.error('FAILED LGTM')
+  });
+}
+
 function handleDOMMutation() {
   cardWindowIsOpen = is(cardWindow, 'visible?');
 
   if (cardWindowIsOpen) {
     on('change', getElement(Enums.cardDescription), '.field', buildGithubSection);
-    on('click', getElement(Enums.pluginMainOutlet), '.js-lgtm', (evt) => {
-      evt.preventDefault();
-      alert('LGTM!');
-    });
+    on('click', getElement(Enums.pluginMainOutlet), '.js-lgtm', handleLGTMClick);
     buildGithubSection();
   } else {
     off('change', getElement(Enums.cardDescription));
+    off('click', getElement(Enums.pluginMainOutlet));
   }
 }
 

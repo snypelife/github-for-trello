@@ -13,31 +13,51 @@ function _serializeParams(params) {
   return queryParams;
 }
 
-function get(url, params, settings) {
+function ajax(method, url, params, settings) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    params = _serializeParams(params);
     const precalls = is(settings.before, 'array?') ?
                      settings.before :
                      is(settings.before, 'function?') ?
                      [settings.before] : []
+    let data;
+    params = settings.json? JSON.stringify(params) : _serializeParams(params);
+    if (/get/i.test(method)) {
+      xhr.url = encodeURI(url + params);
+      xhr.open('GET', xhr.url);
+    } else if (/post/i.test(method)) {
+      data = params;
+      xhr.url = url;
+      xhr.open('POST', xhr.url);
+    } else{
+      throw new Error('Invalid HTTP method!');
+    }
 
-    xhr.url = encodeURI(url + params);
-    xhr.open('GET', xhr.url);
-    xhr.onload = () => {
-      if (xhr.status !== 200) {
-        return reject(xhr.status);
+    xhr.onreadystatechange = () => {
+      if (xhr.readyState === 4) {
+        if (xhr.status >= 200 && xhr.status <= 299) {
+          return resolve(xhr.responseText);
+        }
+        reject(xhr.status);
       }
-      resolve(xhr.responseText);
     };
 
     precalls.forEach((precall) => precall(xhr));
 
-    xhr.send();
+    xhr.send(data);
   });
 }
 
+function get(url, params, settings) {
+  return ajax('GET', url, params, settings);
+}
+
+function post(url, params, settings) {
+  return ajax('POST', url, params, settings);
+}
+
 function getJSON(url, params, settings) {
+  settings.json = true;
   return new Promise((resolve, reject) => {
     get(url, params, settings)
     .then((response) => {
@@ -46,4 +66,14 @@ function getJSON(url, params, settings) {
   });
 }
 
-export { _serializeParams, get, getJSON }
+function postJSON(url, params, settings) {
+  settings.json = true;
+  return new Promise((resolve, reject) => {
+    post(url, params, settings)
+    .then((response) => {
+      resolve(response);
+    }, reject);
+  });
+}
+
+export { _serializeParams, get, getJSON, post, postJSON }
