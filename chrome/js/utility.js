@@ -7,7 +7,7 @@ function is(target, state) {
     case 'visible':
       return target.offsetWidth > 0 < target.offsetHeight;
     case 'empty':
-      return Object.keys(target).length
+      return Object.keys(target).length === 0;
     case 'object':
       return /object/i.test(target.constructor.name);
     case 'string':
