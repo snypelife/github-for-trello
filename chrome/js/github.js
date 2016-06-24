@@ -3,8 +3,7 @@
 import { getJSON, postJSON } from './ajax.js'
 import { startsWith } from './utility.js'
 
-const github = (username, accessToken) => {
-  const authToken = btoa(`${username}:${accessToken}`);
+const github = (authToken) => {
   const prefilter = (xhr) => {
     if (startsWith(xhr.url, 'https://api.github.com')) {
       xhr.setRequestHeader('Authorization', `Basic ${authToken}`);

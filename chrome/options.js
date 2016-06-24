@@ -16,18 +16,17 @@ function get(selector, scope) {
 function saveOptions() {
   const username = get('#username').value;
   const accessToken = get('#access_token').value;
-
-  chrome.storage.sync.set({ username, accessToken }, () => {
-  });
+  const authToken = btoa(`${username}:${accessToken}`);
+  chrome.storage.sync.set({ authToken }, () => {});
 }
 
 function restoreOptions() {
   chrome.storage.sync.get({
-    username: '',
-    accessToken: ''
+    authToken: ''
   }, (items) => {
-    get('#username').value = items.username;
-    get('#access_token').value = items.accessToken;
+    if (items.authToken) {
+      get('#info-message').innerHTML = 'An auth token already exists.';
+    }
   });
 }
 

@@ -11,12 +11,12 @@ import { PullRequestSectionTemplate } from './js/templates.js'
 let gh, cardWindow, cardWindowIsOpen;
 
 function handleCredentialSuccess(credentials) {
-  gh = github(credentials.username, credentials.accessToken);
+  gh = github(credentials.authToken);
 }
 
 function handleCredentialError(reason) {
   if (reason === 'missing auth creds') {
-    const redirect = window.confirm('Hold up, you need a Github username and access token to use this extension. Go set that ish up in the options section.');
+    const redirect = window.confirm('Hold up, you need a Github auth token to use this extension. Go set that ish up in the options section.');
 
     if (redirect) {
       if (chrome.runtime.openOptionsPage) {
