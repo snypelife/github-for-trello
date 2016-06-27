@@ -1,5 +1,6 @@
 'use strict';
 
+import { keys, forEach } from 'lodash-es';
 import { get } from './selector-engine.js'
 
 let events = {};
@@ -11,7 +12,7 @@ function _generateGuid() {
   const array = new Uint32Array(32);
   window.crypto.getRandomValues(array);
 
-  array.forEach((val, i) => {
+  forEach(array, (val, i) => {
     let char = charset[val % charset.length];
     if (i === 7 || i === 11 || i === 15) {
       char += '-';
@@ -52,7 +53,7 @@ function off(event, element) {
     delete events[element.getAttribute('data-guid')];
     element.removeAttribute('data-guid');
   } else {
-    Object.keys(events).forEach((key) => {
+    forEach(keys(events), (key) => {
       const element = events[key].element;
       const proxy = events[key].handler;
       element.removeEventListener(event, proxy, false);

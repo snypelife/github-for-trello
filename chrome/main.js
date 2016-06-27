@@ -1,18 +1,12 @@
 'use strict';
 
-import { is, pick } from './js/utility.js'
+import { merge, pick, toArray, filter, map } from 'lodash-es';
 import Enums from './js/enums.js'
 import { get as getElement, getAll as getElements } from './js/selector-engine.js'
 import { on, off, observe } from './js/event-bus.js'
-import { getCredentials } from './js/vault.js'
 import github from './js/github.js'
 import { PullRequestSectionTemplate } from './js/templates.js'
-
-let gh, cardWindow, cardWindowIsOpen;
-
-function handleCredentialSuccess(credentials) {
-  gh = github(credentials.username, credentials.accessToken);
-}
+import { isVisible } from './js/utility.js';
 
 function handleCredentialError(reason) {
   if (reason === 'missing auth creds') {
@@ -46,90 +40,92 @@ function extractGithubInfoFromLink(link) {
   }
 }
 
-function buildGithubSection() {
+function ghSectionBuilder(github) {
+  return () => {
+    const ghPrLinks = filter(toArray(
+      getElements(`${Enums.cardDescription} ${Enums.githubLinkClassName}`)
+    ), (el) => el.hostname === 'github.com' && /pull/.test(el.pathname));
 
-  const ghPrLinks = Array.toArray(
-    getElements(`${Enums.cardDescription} ${Enums.githubLinkClassName}`)
-  ).filter((el) => el.hostname === 'github.com' && /pull/.test(el.pathname));
+    if (ghPrLinks.length === 0) { return; }
 
-  if (ghPrLinks.length === 0) { return; }
+    Promise.all(
+      map(ghPrLinks, (link) => {
+        return new Promise((resolve, reject) => {
+          const pr = extractGithubInfoFromLink(link.pathname);
 
-  // TODO: Attach PR to card from button in right sidebar
-  // if (getElement(Enums.pluginButtonOutlet)) {
-  //   getElement(pluginButtonOutlet).innerHTML = `
-  //     <h3>Github</h3>
-  //     ${pullRequestButton}
-  //   `;
-  // }
+          github.getPullRequest(pr.owner, pr.repo, pr.number)
+          .then((result) => {
+            const state = merge({
+              repo: {
+                full_name: `${pr.owner}/${pr.repo}`
+              }
+            }, pick(result, Enums.pullRequestProps));
 
-  Promise.all(
-    ghPrLinks.map((link) => {
-      return new Promise((resolve, reject) => {
-        const pr = extractGithubInfoFromLink(link.pathname);
+            link.classList.add('hide');
 
-        gh.getPullRequest(pr.owner, pr.repo, pr.number)
-        .then((result) => {
-          const state = Object.extend({
-            repo: {
-              full_name: `${pr.owner}/${pr.repo}`
-            }
-          }, pick(result, Enums.pullRequestProps));
+            resolve(state);
+          })
+          .catch(reject);
+        });
+      })
+    )
+    .then((pullRequests) => {
+      getElement(Enums.pluginMainOutlet).innerHTML = PullRequestSectionTemplate(pullRequests);
+    }, (err) => {
+      throw err;
+    });
+  };
+}
 
-          link.classList.add('hide');
+function lgtmHandler(github) {
+  return (evt) => {
+    evt.preventDefault();
+    const link = evt.target.getAttribute('data-pr-link');
+    const pr = extractGithubInfoFromLink(link);
 
-          resolve(state);
-        })
-        .catch(reject);
-      });
-    })
-  )
-  .then((pullRequests) => {
-    getElement(Enums.pluginMainOutlet).innerHTML = PullRequestSectionTemplate(pullRequests);
-  }, (err) => {
-    throw err;
+    github.postPullRequestComment(pr.owner, pr.repo, pr.number, 'LGTM:+1:')
+    .then(() => {
+      console.log('SUCCESSFUL LGTM');
+    }, () => {
+      console.error('FAILED LGTM')
+    });
+  };
+}
+
+function DOMHandler(github) {
+  const buildGithubSection = ghSectionBuilder(github);
+  const handleLGTMClick = lgtmHandler(github);
+
+  return () => {
+    const cardWindow = getElement(Enums.cardWindow);
+    const cardWindowIsOpen = isVisible(cardWindow);
+
+    if (cardWindowIsOpen) {
+      on('change', getElement(Enums.cardDescription), '.field', buildGithubSection);
+      on('click', getElement(Enums.pluginMainOutlet), '.js-lgtm', handleLGTMClick);
+      buildGithubSection();
+    } else {
+      off('change', getElement(Enums.cardDescription));
+      off('click', getElement(Enums.pluginMainOutlet));
+    }
+  };
+}
+
+function start() {
+  chrome.storage.sync.get({ username: '', accessToken: '' }, (creds) => {
+    if (!creds || !creds.username || !creds.accessToken) {
+      return handleCredentialError('missing auth creds');
+    }
+
+    const gh = github(creds.username, creds.accessToken);
+    const handleDOMMutation = DOMHandler(gh);
+    handleDOMMutation();
+    observe(getElement(Enums.cardWindow), handleDOMMutation);
   });
-}
-
-function handleLGTMClick(evt) {
-  evt.preventDefault();
-  const link = evt.target.getAttribute('data-pr-link');
-  const pr = extractGithubInfoFromLink(link);
-
-  gh.postPullRequestComment(pr.owner, pr.repo, pr.number, 'LGTM:+1:')
-  .then(() => {
-    console.log('SUCCESSFUL LGTM');
-  }, () => {
-    console.error('FAILED LGTM')
-  });
-}
-
-function handleDOMMutation() {
-  cardWindowIsOpen = is(cardWindow, 'visible?');
-
-  if (cardWindowIsOpen) {
-    on('change', getElement(Enums.cardDescription), '.field', buildGithubSection);
-    on('click', getElement(Enums.pluginMainOutlet), '.js-lgtm', handleLGTMClick);
-    buildGithubSection();
-  } else {
-    off('change', getElement(Enums.cardDescription));
-    off('click', getElement(Enums.pluginMainOutlet));
-  }
-}
-
-function main() {
-  cardWindow = getElement(Enums.cardWindow);
-  cardWindowIsOpen = is(cardWindow, 'visible?');
-
-  getCredentials()
-  .then(handleCredentialSuccess, handleCredentialError)
-  .then(() => {
-    observe(cardWindow, handleDOMMutation);
-    if (cardWindowIsOpen) { handleDOMMutation(); }
-  }, handleCredentialError);
 }
 
 try {
-  main();
+  start();
 } catch (ex) {
   console.error(ex);
 }

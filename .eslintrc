@@ -1,6 +1,8 @@
 extends: "eslint:recommended"
-ecmaFeatures:
-  modules: true
+
+parserOptions:
+  sourceType: module
+  ecmaVersion: 6
 env:
   browser: true
   node: true

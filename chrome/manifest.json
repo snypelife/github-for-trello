@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Trello-Github integration",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "content_scripts": [
     {
       "matches": [
@@ -13,7 +13,6 @@
         "main.css"
       ],
       "js": [
-        "js/polyfills.js",
         "bundle.js"
       ]
     }
