@@ -86,8 +86,9 @@ function lgtmHandler(github) {
     github.postPullRequestComment(pr.owner, pr.repo, pr.number, 'LGTM:+1:')
     .then(() => {
       console.log('SUCCESSFUL LGTM');
-    }, () => {
-      console.error('FAILED LGTM')
+    })
+    .then(null, (err) => {
+      console.error('FAILED LGTM', err);
     });
   };
 }

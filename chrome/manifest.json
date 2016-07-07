@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Trello-Github integration",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "content_scripts": [
     {
       "matches": [

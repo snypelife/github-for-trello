@@ -21,12 +21,13 @@ class Ajax {
   }
   send(payload) {
     this.payload = JSON.stringify(payload);
+    return this;
   }
   end(cb) {
     this.xhr.responseType = 'json';
     this.xhr.onreadystatechange = () => {
       if (this.xhr.readyState === XMLHttpRequest.DONE) {
-        if (this.xhr.status === 200) {
+        if (this.xhr.status >= 200 && this.xhr.status <= 299) {
           cb(null, this.xhr.response);
         } else {
           cb(new Error(this.xhr.statusText));
