@@ -45,5 +45,8 @@ export default new Enum({
     'repo',
     'title',
     'user'
-  ]
+  ],
+  prLinkRegex: /(?:http(?:s)?:\/\/)?(?:github\.com)?\/(.+)\/(.+)\/(.+)\/(.+)/,
+  boardRegex: /(?:http(?:s)?:\/\/)?(?:trello\.com)?\/b\/(.+)\/.*/,
+  cardRegex: /(?:http(?:s)?:\/\/)?(?:trello\.com)?(\/c\/.+)/
 });

@@ -7,6 +7,9 @@ import { on, off, observe } from './js/event-bus.js'
 import github from './js/github.js'
 import { PullRequestSectionTemplate } from './js/templates.js'
 import { isVisible } from './js/utility.js';
+import * as trello from './js/trello.js';
+
+const prLinkRegex = /(?:http(?:s)?:\/\/)?(?:github\.com)?\/(.+)\/(.+)\/(.+)\/(.+)/;
 
 function handleCredentialError(reason) {
   if (reason === 'missing auth creds') {
@@ -25,10 +28,8 @@ function handleCredentialError(reason) {
 }
 
 function extractGithubInfoFromLink(link) {
-  const regex = /(?:http(?:s)?:\/\/)?(?:github\.com)?\/(.+)\/(.+)\/(.+)\/(.+)/;
-
-  if (regex.test(link)) {
-    const linkParts = link.match(regex);
+  if (prLinkRegex.test(link)) {
+    const linkParts = link.match(prLinkRegex);
     return {
       owner: linkParts[1],
       repo: linkParts[2],
@@ -108,6 +109,7 @@ function DOMHandler(github) {
     } else {
       off('change', getElement(Enums.cardDescription));
       off('click', getElement(Enums.pluginMainOutlet));
+      trello.insertPullRequestBadges();
     }
   };
 }
