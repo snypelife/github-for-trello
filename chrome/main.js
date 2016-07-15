@@ -102,6 +102,8 @@ function DOMHandler(github) {
     const cardWindow = getElement(Enums.cardWindow);
     const cardWindowIsOpen = isVisible(cardWindow);
 
+    trello.insertPullRequestBadges();
+
     if (cardWindowIsOpen) {
       on('change', getElement(Enums.cardDescription), '.field', buildGithubSection);
       on('click', getElement(Enums.pluginMainOutlet), '.js-lgtm', handleLGTMClick);
@@ -109,7 +111,6 @@ function DOMHandler(github) {
     } else {
       off('change', getElement(Enums.cardDescription));
       off('click', getElement(Enums.pluginMainOutlet));
-      trello.insertPullRequestBadges();
     }
   };
 }

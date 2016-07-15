@@ -12,15 +12,21 @@ const API_cards = (boardId) => {
 const cardUrlSet = [];
 
 export function getCards(cb) {
-  const boardId = location.href.match(Enums.boardRegex)[1];
+  const match = location.href.match(Enums.boardRegex);
+
+  if (!match || !match[1]) { return; }
+
+  const boardId = match[1];
   Ajax.get(API_cards(boardId)).end((err, data) => {
-    if (err) { throw err; }
-    cb(data);
+    if (err) { return cb(err); }
+    cb(null, data);
   });
 }
 
 export function insertPullRequestBadges() {
-  getCards((cards) => {
+  getCards((err, cards) => {
+    if (err) { throw err; }
+
     cards.filter((card) => {
       return !cardUrlSet.includes(card.url) && Enums.prLinkRegex.test(card.desc);
     })
