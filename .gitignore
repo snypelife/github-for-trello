@@ -7,3 +7,4 @@ node_modules/*
 bundle.js
 bundle.js.map
 coverage
+npm-debug.log

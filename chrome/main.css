@@ -1,85 +1,85 @@
-.tsi-github-plugin {
+.trello-github-plugin {
   background-image: url('https://d78fikflryjgj.cloudfront.net/images/services/8cab38550d1f23032facde191031d024/github.png');
   background-repeat: no-repeat;
   background-size: 25px;
   background-position: 5px 5px;
 }
 
-.tsi-github-plugin *,
-.tsi-github-plugin *:before,
-.tsi-github-plugin *:after {
+.trello-github-plugin *,
+.trello-github-plugin *:before,
+.trello-github-plugin *:after {
   box-sizing: border-box;
 }
 
-.tsi-pull-request-title {
+.trello-pull-request-title {
   display: block;
   font-size: 1.1rem;
   font-weight: bold;
   line-height: 1.1rem;
 }
 
-.tsi-pull-request-slug {
+.trello-pull-request-slug {
   color: #8c8c8c;
   font-size: .9rem;
   line-height: 1rem;
 }
 
-.tsi-pull-request-changes {
+.trello-pull-request-changes {
   text-align: right;
 }
 
-.tsi-github-plugin-pull-request {
+.trello-github-plugin-pull-request {
   border-bottom: 1px solid #d6dadc;
   padding: 1rem 0;
   margin-bottom: 1rem;
 }
 
-.tsi-github-plugin-pull-request:last-child {
+.trello-github-plugin-pull-request:last-child {
   border-bottom: 0;
 }
 
-.tsi-pull-request-additions,
-.tsi-pull-request-deletions {
+.trello-pull-request-additions,
+.trello-pull-request-deletions {
   font-weight: bold;
 }
 
-.tsi-pull-request-additions {
+.trello-pull-request-additions {
   color: green;
 }
 
-.tsi-pull-request-deletions {
+.trello-pull-request-deletions {
   color: red;
 }
 
-.tsi-user-avatar {
+.trello-user-avatar {
   display: inline-block;
   height: 25px;
   width: 25px;
 }
 
-.tsi-merge-icon {
+.trello-merge-icon {
   fill: currentColor;
 }
 
-.tsi-merge-icon-clean {
+.trello-merge-icon-clean {
   color: #0a0;
 }
 
-.tsi-merge-icon-conflict {
+.trello-merge-icon-conflict {
   color: #a00;
 }
 
-.tsi-merge-icon-merged {
+.trello-merge-icon-merged {
   color: #a0a;
 }
 
-.tsi-merge-icon-unknown {
+.trello-merge-icon-unknown {
   color: #aaa;
 }
 
-.tsi-pull-request-opened-by,
-.tsi-pull-request-merged-by,
-.tsi-pull-request-closed-at {
+.trello-pull-request-opened-by,
+.trello-pull-request-merged-by,
+.trello-pull-request-closed-at {
   font-size: .9rem;
   line-height: 1.2rem;
 }
