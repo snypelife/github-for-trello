@@ -34,7 +34,7 @@ export function PullRequestTemplate (pullRequest) {
         Closed on ${new Date(pullRequest.closed_at).toLocaleString()}
       </div>
     ` : ''
-  const bodyText = pullRequest.body ? `<p>${pullRequest.body}</p>` : ''
+  const bodyText = pullRequest.body ? `<p>${htmlEscape(pullRequest.body)}</p>` : ''
   const LGTM = mergeState === 'clean'
       ? `<a class="button-link js-lgtm" href="#" data-pr-link="${pullRequest.html_url}"><span class="icon-sm icon-vote"></span>LGTM!</a>`
       : ''
@@ -76,7 +76,7 @@ export function PullRequestTemplate (pullRequest) {
                   ${LGTM}
                 </div>
               </div>
-              ${htmlEscape(bodyText)}
+              ${bodyText}
             </div>
           </div>
         </div>
