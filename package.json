@@ -11,10 +11,22 @@
     "version": "./bump.js",
     "zip": "rimraf github-trello.zip && zip -r github-trello.zip chrome/",
     "publish": "npm run build && npm run zip && ./publish.js",
-    "lint": "eslint .",
+    "lint": "standard | snazzy",
     "test": "mocha --compilers js:babel-register --recursive test/",
     "test-cov": "istanbul cover --include-all-sources _mocha -- --compilers js:babel-register --recursive test/",
     "cov": "opener coverage/lcov-report/index.html"
+  },
+  "babel" : {
+    "presets": [
+      "es2015-rollup"
+    ]
+  },
+  "standard": {
+    "env": {
+      "browser": true,
+      "node": true,
+      "webextensions": true
+    }
   },
   "repository": {
     "type": "git",
@@ -53,6 +65,8 @@
     "rollup-plugin-node-resolve": "^1.7.1",
     "rollup-plugin-uglify": "^1.0.1",
     "sinon": "^1.17.3",
-    "sinon-chai": "^2.8.0"
+    "sinon-chai": "^2.8.0",
+    "snazzy": "^7.0.0",
+    "standard": "^10.0.2"
   }
 }

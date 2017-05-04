@@ -1,18 +1,18 @@
-'use strict';
+'use strict'
 
 class Enum {
-  constructor(obj) {
-    const keysByValue = new Map();
-    const EnumLookup = (value) => keysByValue.get(value);
+  constructor (obj) {
+    const keysByValue = new Map()
+    const EnumLookup = (value) => keysByValue.get(value)
 
     for (const key of Object.keys(obj)) {
-      EnumLookup[key] = obj[key];
-      keysByValue.set(EnumLookup[key], key);
+      EnumLookup[key] = obj[key]
+      keysByValue.set(EnumLookup[key], key)
     }
 
     // Return a function with all your enum properties attached.
     // Calling the function with the value will return the key.
-    return Object.freeze(EnumLookup);
+    return Object.freeze(EnumLookup)
   }
 }
 
@@ -49,4 +49,4 @@ export default new Enum({
   prLinkRegex: /(?:http(?:s)?:\/\/)?(?:github\.com)\/(.+)\/(.+)\/(.+)\/(.+)/,
   boardRegex: /(?:http(?:s)?:\/\/)?(?:trello\.com)\/b\/(.+)\/.*/,
   cardRegex: /(?:http(?:s)?:\/\/)?(?:trello\.com)(\/c\/.+)/
-});
+})

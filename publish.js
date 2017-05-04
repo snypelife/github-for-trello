@@ -28,89 +28,89 @@
 // Additionally the script needs the app ID of the Chrome extension, which it gets
 // from the APP_ID env var
 
-const log = require('console');
-const fs = require('fs');
-const join = require('path').join;
-const request = require('request');
-const conf = require('rc')('publish', {});
-const util = require('util');
+const log = require('console')
+const fs = require('fs')
+const join = require('path').join
+const request = require('request')
+const conf = require('rc')('publish', {})
+const util = require('util')
 
-function expand(obj) {
-  return util.inspect(obj, false, 10);
+function expand (obj) {
+  return util.inspect(obj, false, 10)
 }
 
-function requireEnvVar(name) {
-  const val = conf[name];
+function requireEnvVar (name) {
+  const val = conf[name]
   if (typeof val !== 'string') {
-    throw new Error(`Required config variable ${name} is not set`);
+    throw new Error(`Required config variable ${name} is not set`)
   }
-  return val;
+  return val
 }
 
-function getAccessToken(clientId, clientSecret, refreshToken) {
+function getAccessToken (clientId, clientSecret, refreshToken) {
   return new Promise((resolve, reject) => {
     const params = {
       client_id: clientId,
       client_secret: clientSecret,
       grant_type: 'refresh_token',
       refresh_token: refreshToken
-    };
-    log.info('Refreshing Chrome Web Store access token...');
+    }
+    log.info('Refreshing Chrome Web Store access token...')
     request.post('https://accounts.google.com/o/oauth2/token', {
-     form: params,
-     json: true
+      form: params,
+      json: true
     },
     (err, response, body) => {
       if (err || response.statusCode !== 200) {
-        return reject(new Error(`Fetching Chrome Web Store access token failed: ${response.statusCode} ${expand(body)}`));
+        return reject(new Error(`Fetching Chrome Web Store access token failed: ${response.statusCode} ${expand(body)}`))
       }
-      resolve(body.access_token);
-    });
-  });
+      resolve(body.access_token)
+    })
+  })
 }
 
-function uploadPackage(accessToken) {
-  const appId = requireEnvVar('APP_ID');
-  const packageUploadEndpoint = 'https://www.googleapis.com/upload/chromewebstore/v1.1/items/' + appId;
+function uploadPackage (accessToken) {
+  const appId = requireEnvVar('APP_ID')
+  const packageUploadEndpoint = 'https://www.googleapis.com/upload/chromewebstore/v1.1/items/' + appId
 
   return new Promise((resolve, reject) => {
-    log.info('Uploading updated package...');
+    log.info('Uploading updated package...')
     fs.createReadStream(join(__dirname, 'github-trello.zip')).pipe(
       request.put(packageUploadEndpoint,
         { auth: { bearer: accessToken } },
         (err, response, body) => {
-        if (err || response.statusCode !== 200) {
-          return reject(
+          if (err || response.statusCode !== 200) {
+            return reject(
             new Error(`Package upload failed: ${response.statusCode} ${body}`)
-          );
-        }
+          )
+          }
 
-        resolve(accessToken);
-      })
-    );
-  });
+          resolve(accessToken)
+        })
+    )
+  })
 }
 
-function publishPackage(accessToken) {
-  const appId = requireEnvVar('APP_ID');
-  const packagePublishEndpoint = 'https://www.googleapis.com/chromewebstore/v1.1/items/' + appId + '/publish';
+function publishPackage (accessToken) {
+  const appId = requireEnvVar('APP_ID')
+  const packagePublishEndpoint = 'https://www.googleapis.com/chromewebstore/v1.1/items/' + appId + '/publish'
 
   return new Promise((resolve, reject) => {
-    log.info('Publishing updated package...');
+    log.info('Publishing updated package...')
     request.post(packagePublishEndpoint,
       { auth: { bearer: accessToken } },
-      function(err, response, body) {
-      if (err || response.statusCode !== 200) {
-        return reject(
+      function (err, response, body) {
+        if (err || response.statusCode !== 200) {
+          return reject(
           new Error(`Publishing updated package failed: ${response.statusCode} ${body}`)
-        );
-      }
-      resolve();
-    });
-  });
+        )
+        }
+        resolve()
+      })
+  })
 }
 
-function main() {
+function main () {
   // const travisBranch = requireEnvVar('TRAVIS_BRANCH');
   // const travisPullRequest = requireEnvVar('TRAVIS_PULL_REQUEST');
 
@@ -122,10 +122,10 @@ function main() {
   //   throw new Error('Package path not specified');
   // }
 
-  const clientId = requireEnvVar('CLIENT_ID');
-  const clientSecret = requireEnvVar('CLIENT_SECRET');
+  const clientId = requireEnvVar('CLIENT_ID')
+  const clientSecret = requireEnvVar('CLIENT_SECRET')
   // const authCode = requireEnvVar('AUTH_CODE');
-  const refreshToken = requireEnvVar('REFRESH_TOKEN');
+  const refreshToken = requireEnvVar('REFRESH_TOKEN')
 
   // if (travisBranch !== 'master' || travisPullRequest !== 'false') {
   // log.info('Skipping publication from pull request or non-master branch');
@@ -144,20 +144,20 @@ function main() {
   .then(uploadPackage)
   .then(publishPackage)
   .then(() => {
-    log.info('Updated package has been queued for publishing');
+    log.info('Updated package has been queued for publishing')
   })
-  .catch(onErr);
+  .catch(onErr)
 }
 
-function onErr(err) {
-  log.info('Publishing to Chrome Web Store failed:', err.message);
-  process.exit(1);
+function onErr (err) {
+  log.info('Publishing to Chrome Web Store failed:', err.message)
+  process.exit(1)
 }
 
-process.on('uncaughtException', onErr);
+process.on('uncaughtException', onErr)
 
 try {
-  main();
+  main()
 } catch (err) {
-  onErr(err);
+  onErr(err)
 }
