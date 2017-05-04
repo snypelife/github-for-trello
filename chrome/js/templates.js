@@ -1,5 +1,7 @@
 'use strict'
 
+import { escape as htmlEscape } from 'lodash-es'
+
 export function GithubMergeIcon (state, height, width) {
   if (!state || typeof state !== 'string' || !['clean', 'conflict', 'merged'].includes(state.toLowerCase())) {
     throw new Error('Invalid GithubMergeIcon state')
@@ -50,13 +52,13 @@ export function PullRequestTemplate (pullRequest) {
               <div class="row">
                 <div class="col-md-9">
                   <a class="trello-pull-request-title" href="${pullRequest.html_url}" target="_blank">
-                    ${pullRequest.title}
+                    ${htmlEscape(pullRequest.title)}
                   </a>
                   <div class="trello-pull-request-slug">
-                    ${pullRequest.repo.full_name} #${pullRequest.number}
+                    ${htmlEscape(pullRequest.repo.full_name)} #${pullRequest.number}
                   </div>
                   <div class="trello-pull-request-opened-by">
-                    Opened by <b>${pullRequest.user.login}</b> on ${new Date(pullRequest.created_at).toLocaleString()}
+                    Opened by <b>${htmlEscape(pullRequest.user.login)}</b> on ${new Date(pullRequest.created_at).toLocaleString()}
                   </div>
                   ${mergedBy}
                   ${closedBy}
@@ -74,7 +76,7 @@ export function PullRequestTemplate (pullRequest) {
                   ${LGTM}
                 </div>
               </div>
-              ${bodyText}
+              ${htmlEscape(bodyText)}
             </div>
           </div>
         </div>
