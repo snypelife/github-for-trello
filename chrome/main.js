@@ -1,6 +1,6 @@
 'use strict'
 
-import { merge, pick, toArray, filter, map } from 'lodash-es'
+import { escape as htmlEscape, merge, pick, toArray, filter, map } from 'lodash-es'
 import Enums from './js/enums.js'
 import { get as getElement, getAll as getElements } from './js/selector-engine.js'
 import { on, off, observe } from './js/event-bus.js'
@@ -71,7 +71,7 @@ function ghSectionBuilder (github) {
       })
     )
     .then((pullRequests) => {
-      getElement(Enums.pluginMainOutlet).innerHTML = PullRequestSectionTemplate(pullRequests)
+      getElement(Enums.pluginMainOutlet).innerHTML = htmlEscape(PullRequestSectionTemplate(pullRequests))
     }, (err) => {
       throw err
     })

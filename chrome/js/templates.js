@@ -32,7 +32,7 @@ export function PullRequestTemplate (pullRequest) {
         Closed on ${new Date(pullRequest.closed_at).toLocaleString()}
       </div>
     ` : ''
-  const bodyText = pullRequest.body ? `<p>${encodeURIComponent(pullRequest.body)}</p>` : ''
+  const bodyText = pullRequest.body ? `<p>${pullRequest.body}</p>` : ''
   const LGTM = mergeState === 'clean'
       ? `<a class="button-link js-lgtm" href="#" data-pr-link="${pullRequest.html_url}"><span class="icon-sm icon-vote"></span>LGTM!</a>`
       : ''
@@ -50,7 +50,7 @@ export function PullRequestTemplate (pullRequest) {
               <div class="row">
                 <div class="col-md-9">
                   <a class="trello-pull-request-title" href="${pullRequest.html_url}" target="_blank">
-                    ${encodeURIComponent(pullRequest.title)}
+                    ${pullRequest.title}
                   </a>
                   <div class="trello-pull-request-slug">
                     ${pullRequest.repo.full_name} #${pullRequest.number}
